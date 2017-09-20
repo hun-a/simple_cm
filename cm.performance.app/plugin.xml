@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="cm.performance.app.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            name="RCP Perspective"
+            class="cm.performance.app.Perspective"
+            id="cm.performance.test.perspective">
+      </perspective>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="cm.performance.editor.QueryEditor"
+            default="false"
+            id="cm.performance.app.editors.queryEditor"
+            name="queryEditor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            class="cm.performance.views.HostView"
+            id="cm.performance.app.views.host"
+            name="connect"
+            restorable="true">
+      </view>
+   </extension>
+
+</plugin>

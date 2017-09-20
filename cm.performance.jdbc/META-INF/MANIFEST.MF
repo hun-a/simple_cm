@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Jdbc
+Bundle-SymbolicName: cm.performance.jdbc
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: lib/com.cubrid.cubridmanager.jdbc.proxy_8.4.1.201308291110.jar,
+ .
+Export-Package: cm.performace.jdbc
