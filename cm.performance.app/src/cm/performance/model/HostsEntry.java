@@ -10,18 +10,21 @@ public class HostsEntry extends Host {
 	private final String db;
 	private final String user;
 	private final String password;
+	private final String jdbcDriverPath;
 	private Presence presence;
 	private final HostsGroup group;
 	private Connection conn;
 
 	public HostsEntry(HostsGroup group, String server,
-			int port, String db, String user, String password) {
+			int port, String db, String user,
+			String password, String jdbcDriverPath) {
 		this.group = group;
 		this.server = server;
 		this.port = port;
 		this.db = db;
 		this.user = user;
 		this.password = password;
+		this.jdbcDriverPath = jdbcDriverPath;
 		this.presence = Presence.DISCONNECT;
 	}
 
@@ -53,7 +56,7 @@ public class HostsEntry extends Host {
 	public boolean connect() throws Exception {
 		String url = "jdbc:cubrid:" + server + ":" + port + ":"
 				+ db + ":" + user + ":" + password + ":";
-		conn = CUBRIDConnection.getConnection(url);
+		conn = CUBRIDConnection.getConnection(jdbcDriverPath, url);
 		if (conn != null) {
 			return true;
 		} 

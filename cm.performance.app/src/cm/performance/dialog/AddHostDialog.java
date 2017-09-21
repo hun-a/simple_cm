@@ -3,10 +3,14 @@ package cm.performance.dialog;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -17,12 +21,14 @@ public class AddHostDialog extends Dialog {
 	private Text dbText;
 	private Text userText;
 	private Text passwordText;
+	private Text jdbcDriverPathText;
 	
 	private String server;
 	private int port;
 	private String db;
 	private String user;
 	private String password;
+	private String jdbcDriverPath;
 	
 	public AddHostDialog(Shell parentShell) {
 		super(parentShell);
@@ -35,7 +41,7 @@ public class AddHostDialog extends Dialog {
 
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout(2, false);
+		GridLayout layout = new GridLayout(3, false);
 		composite.setLayout(layout);
 
 		Label serverLabel = new Label(composite, SWT.NONE);
@@ -47,6 +53,7 @@ public class AddHostDialog extends Dialog {
 		serverText = new Text(composite, SWT.BORDER);
 		GridData textGridData = new GridData(GridData.FILL, GridData.FILL,
 				true, false);
+		textGridData.horizontalSpan = 2;
 		textGridData.widthHint = 150;
 		serverText.setLayoutData(textGridData);
 		
@@ -78,6 +85,29 @@ public class AddHostDialog extends Dialog {
 		passwordText = new Text(composite, SWT.BORDER);
 		passwordText.setLayoutData(textGridData);
 		
+		Label jdbcDriverPathLabel = new Label(composite, SWT.NONE);
+		jdbcDriverPathLabel.setText("&JDBC path:");
+		jdbcDriverPathLabel.setLayoutData(labelGridData);
+		
+		jdbcDriverPathText = new Text(composite, SWT.BORDER);
+		jdbcDriverPathText.setEnabled(false);
+		GridData jdbcGridData = new GridData(GridData.END, GridData.CENTER,
+				false, false);
+		jdbcGridData.widthHint = 120;
+		jdbcDriverPathText.setLayoutData(jdbcGridData);
+		
+		Button jdbcDriverPathButton = new Button(composite, SWT.NONE);
+		jdbcDriverPathButton.setText("file");
+		jdbcDriverPathButton.pack();
+		jdbcDriverPathButton.addMouseListener(new MouseAdapter() {
+			public void mouseUp(MouseEvent e) {
+				FileDialog d = new FileDialog(getShell(), SWT.OPEN);
+				d.setFilterExtensions(new String[] {"*.jar"});
+				jdbcDriverPath = d.open();
+				jdbcDriverPathText.setText(jdbcDriverPath);
+			}
+		});
+		
 		return composite;
 	}
 	
@@ -93,7 +123,8 @@ public class AddHostDialog extends Dialog {
 		password = passwordText.getText();
 		
 		if (!server.equals("") && (port > 0 && port <= 65535)
-				&& !db.equals("") && !user.equals("")) {
+				&& !db.equals("") && !user.equals("")
+				&& !jdbcDriverPath.equals("")) {
 			super.okPressed();
 		} else {
 			MessageDialog.openError(getShell(), "Invalid Input", "Try again.");
@@ -119,5 +150,9 @@ public class AddHostDialog extends Dialog {
 	
 	public String getPassword() {
 		return password;
+	}
+	
+	public String getJdbcDriverPath() {
+		return jdbcDriverPath;
 	}
 }

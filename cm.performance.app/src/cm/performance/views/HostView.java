@@ -52,7 +52,7 @@ public class HostView extends ViewPart {
 		HostsGroup defaultGroup = new HostsGroup(root, "default");
 		root.addEntry(defaultGroup);
 		defaultGroup.addEntry(new HostsEntry(
-				defaultGroup, "localhost", 30000, "demodb", "public", ""));
+				defaultGroup, "localhost", 30000, "demodb", "public", "", ""));
 	}
 	
 	public void dispose() {

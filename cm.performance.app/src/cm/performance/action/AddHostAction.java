@@ -51,7 +51,8 @@ public class AddHostAction  extends Action implements ISelectionListener,
 			HostsGroup group = (HostsGroup) item;
 			HostsEntry entry = new HostsEntry(
 					group, d.getServer(), d.getPort(),
-					d.getDb(), d.getUser(), d.getPassword());
+					d.getDb(), d.getUser(), d.getPassword(),
+					d.getJdbcDriverPath());
 			group.addEntry(entry);
 		}
 	}
