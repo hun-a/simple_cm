@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Editor
+Bundle-SymbolicName: com.cubrid.tool.editor
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: CUBRID
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
+ org.eclipse.core.runtime;bundle-version="3.7.0",
+ org.eclipse.jface.text;bundle-version="3.7.2"
+Bundle-ClassPath: .,
+ lib/commons-lang-2.6.jar,
+ lib/dom4j-1.6.1.jar
+Export-Package: com.cubrid.tool.editor,
+ com.cubrid.tool.editor.dialog
