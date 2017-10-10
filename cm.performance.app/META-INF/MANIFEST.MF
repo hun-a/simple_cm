@@ -6,5 +6,6 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: cm.performance.app.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- cm.performance.jdbc;bundle-version="1.0.0"
+ cm.performance.jdbc;bundle-version="1.0.0",
+ com.cubrid.common.ui;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy

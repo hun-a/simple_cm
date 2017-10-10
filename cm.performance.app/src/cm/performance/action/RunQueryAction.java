@@ -47,6 +47,9 @@ public class RunQueryAction extends Action
 			return;
 		}
 		
+		/*
+		 * TODO Need to add QueryExecuter features to the below codes.
+		 */
 		StringBuilder result = new StringBuilder();
 		editor.clearTableView();
 		try {
@@ -67,6 +70,7 @@ public class RunQueryAction extends Action
 			e.printStackTrace();
 		}
 		
+		// TODO Need to display the result as table view.
 		editor.appendResultsToTableView(result.toString());
 	}
 
