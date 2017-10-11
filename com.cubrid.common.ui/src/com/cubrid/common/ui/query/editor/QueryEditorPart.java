@@ -444,7 +444,7 @@ public class QueryEditorPart extends
 			}
 
 		} catch (Exception event) {
-			LOGGER.error("", event);
+			event.printStackTrace();
 		} finally {
 			connection.close();
 			connection = null;
