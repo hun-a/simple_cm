@@ -3,6 +3,8 @@ package cm.performance.action;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -10,8 +12,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
-import cm.performance.editor.QueryEditor;
-import cm.performance.editor.QueryEditorInput;
+import com.cubrid.common.ui.query.editor.QueryEditorPart;
+import com.cubrid.common.ui.query.editor.QueryUnit;
+
 import cm.performance.model.HostsEntry;
 
 public class OpenQueryEditorAction extends Action
@@ -36,14 +39,21 @@ public class OpenQueryEditorAction extends Action
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		IWorkbenchPage page = window.getActivePage();
-		QueryEditorInput input = new QueryEditorInput(entry);
+		IEditorPart editor = null;
 		
-		try {
-			page.openEditor(input, QueryEditor.ID);
-		} catch (PartInitException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (page != null) {
+			IEditorInput input = new QueryUnit();
+			try {
+				editor = page.openEditor(input, QueryEditorPart.ID);
+			} catch (PartInitException e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (editor == null) {
+			return;
 		}
 	}
 
