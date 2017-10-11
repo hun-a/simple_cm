@@ -27,6 +27,12 @@
             id="cm.performance.app.editors.queryEditor"
             name="queryEditor">
       </editor>
+      <editor
+            class="com.cubrid.common.ui.query.editor.QueryEditorPart"
+            default="false"
+            id="com.cubrid.common.ui.query.editor.QueryEditorPart"
+            name="%queryEditorName">
+      </editor>
    </extension>
    <extension
          point="org.eclipse.ui.views">
