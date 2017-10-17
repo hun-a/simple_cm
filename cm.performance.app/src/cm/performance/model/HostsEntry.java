@@ -2,6 +2,10 @@ package cm.performance.model;
 
 import java.sql.Connection;
 
+import com.cubrid.common.ui.spi.model.CubridDatabase;
+import com.cubrid.cubridmanager.core.common.model.ServerInfo;
+import com.cubrid.cubridmanager.core.cubrid.database.model.DatabaseInfo;
+
 import cm.performace.jdbc.CUBRIDConnection;
 
 public class HostsEntry extends Host {
@@ -53,13 +57,20 @@ public class HostsEntry extends Host {
 		return conn;
 	}
 	
-	public boolean connect() throws Exception {
+	public CubridDatabase connect() {
 		String url = "jdbc:cubrid:" + server + ":" + port + ":"
 				+ db + ":" + user + ":" + password + ":";
-		conn = CUBRIDConnection.getConnection(jdbcDriverPath, url);
-		if (conn != null) {
-			return true;
-		} 
-		return false;	
+		
+		// Set the ServerInfo
+		ServerInfo serverInfo = new ServerInfo();
+		
+		// Set the DatabaseInfo
+		DatabaseInfo dbInfo = new DatabaseInfo(db, serverInfo);
+		
+		// Set the CubridDatabase
+		CubridDatabase database = new CubridDatabase(Long.toString(System.currentTimeMillis()), "");
+		database.setDatabaseInfo(dbInfo);
+		
+		return database;
 	}
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.cubrid.common.ui.query.editor.QueryEditorPart"
+            default="false"
+            icon="icons/queryeditor/query_editor.png"
+            id="com.cubrid.common.ui.query.editor.QueryEditorPart"
+            name="queryEditorName">
+      </editor>
+   </extension>
+
+</plugin>

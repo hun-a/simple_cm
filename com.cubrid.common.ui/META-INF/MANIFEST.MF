@@ -1,8 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Ui
-Bundle-SymbolicName: com.cubrid.common.ui
+Bundle-SymbolicName: com.cubrid.common.ui;singleton:=true
 Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.cubrid.common.ui.CommonUIPlugin
 Bundle-Vendor: CUBRID
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: org.eclipse.jface.text;bundle-version="3.7.2",
@@ -16,7 +17,8 @@ Require-Bundle: org.eclipse.jface.text;bundle-version="3.7.2",
  com.cubrid.cubridmanager.core;bundle-version="1.0.0",
  com.cubrid.common.core;bundle-version="1.0.0",
  org.eclipse.gef;bundle-version="3.7.2",
- com.cubrid.tool.editor;bundle-version="1.0.0"
+ com.cubrid.tool.editor;bundle-version="1.0.0",
+ com.cubrid.common.update;bundle-version="9.3.1"
 Import-Package: org.eclipse.ui.forms,
  org.eclipse.ui.forms.editor,
  org.eclipse.ui.forms.events,

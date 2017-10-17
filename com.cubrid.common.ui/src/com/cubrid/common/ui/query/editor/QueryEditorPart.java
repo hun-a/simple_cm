@@ -238,9 +238,9 @@ public class QueryEditorPart extends
 		this.setInput(input);
 		this.setPartName(input.getName());
 		this.setTitleToolTip(input.getToolTipText());
-		if (input.getImageDescriptor() != null) {
-			this.setTitleImage(input.getImageDescriptor().createImage());
-		}
+//		if (input.getImageDescriptor() != null) {
+//			this.setTitleImage(input.getImageDescriptor().createImage());
+//		}
 		hookRetragetActions();
 		this.getSite().getPage().addPartListener(new IPartListener() {
 
@@ -3619,7 +3619,7 @@ public class QueryEditorPart extends
 
 	public List<CombinedQueryEditorComposite> getAllCombinedQueryEditorComposite() {
 		List<CombinedQueryEditorComposite> combinedQueryEditorCompositeList = new ArrayList<CombinedQueryEditorComposite>();
-
+		
 		CTabItem[] items = combinedQueryEditortabFolder.getItems();
 		for (CTabItem item : items) {
 			if (item instanceof SubQueryEditorTabItem) {

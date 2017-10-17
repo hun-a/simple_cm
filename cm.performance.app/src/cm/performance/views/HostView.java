@@ -52,7 +52,7 @@ public class HostView extends ViewPart {
 		HostsGroup defaultGroup = new HostsGroup(root, "default");
 		root.addEntry(defaultGroup);
 		defaultGroup.addEntry(new HostsEntry(
-				defaultGroup, "localhost", 30000, "demodb", "public", "", ""));
+				defaultGroup, "218.233.240.77", 63100, "demodb", "dba", "", "/Users/hun/RND/01.QA/00.TEST/jdbc/00.CUBRID/JDBC-10.1.1.7667-cubrid.jar"));
 	}
 	
 	public void dispose() {

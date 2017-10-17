@@ -3,7 +3,6 @@ package cm.performance.action;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
@@ -14,6 +13,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 import com.cubrid.common.ui.query.editor.QueryEditorPart;
 import com.cubrid.common.ui.query.editor.QueryUnit;
+import com.cubrid.common.ui.spi.model.CubridDatabase;
 
 import cm.performance.model.HostsEntry;
 
@@ -34,8 +34,10 @@ public class OpenQueryEditorAction extends Action
 	public void run() {
 		Object item = selection.getFirstElement();
 		HostsEntry entry = (HostsEntry) item;
+		CubridDatabase database = null;
+
 		try {
-			entry.connect();
+			database = entry.connect();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -44,7 +46,8 @@ public class OpenQueryEditorAction extends Action
 		IEditorPart editor = null;
 		
 		if (page != null) {
-			IEditorInput input = new QueryUnit();
+			QueryUnit input = new QueryUnit();
+			input.setDatabase(database);
 			try {
 				editor = page.openEditor(input, QueryEditorPart.ID);
 			} catch (PartInitException e) {
@@ -52,9 +55,12 @@ public class OpenQueryEditorAction extends Action
 			}
 		}
 
-		if (editor == null) {
+		if (editor != null) {
+			((QueryEditorPart) editor).connect(database);
+		} else {
 			return;
 		}
+		
 	}
 
 	public void dispose() {

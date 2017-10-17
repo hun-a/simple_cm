@@ -2,6 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Core
 Bundle-SymbolicName: com.cubrid.cubridmanager.core
+Bundle-Activator: com.cubrid.cubridmanager.core.CubridManagerCorePlugin
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: CUBRID
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

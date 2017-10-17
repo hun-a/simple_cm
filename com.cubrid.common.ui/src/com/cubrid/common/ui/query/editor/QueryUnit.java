@@ -1,6 +1,7 @@
 package com.cubrid.common.ui.query.editor;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
