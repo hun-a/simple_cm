@@ -9,5 +9,6 @@ Require-Bundle: org.eclipse.ui,
  cm.performance.jdbc;bundle-version="1.0.0",
  com.cubrid.common.ui;bundle-version="1.0.0",
  com.cubrid.cubridmanager.core;bundle-version="1.0.0",
- org.eclipse.jface.text;bundle-version="3.7.2"
+ org.eclipse.jface.text;bundle-version="3.7.2",
+ com.cubrid.cubridmanager.ui;bundle-version="9.3.1"
 Bundle-ActivationPolicy: lazy

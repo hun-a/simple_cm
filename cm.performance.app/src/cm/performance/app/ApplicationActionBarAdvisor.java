@@ -10,6 +10,7 @@ import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
 
 import com.cubrid.common.ui.spi.action.ActionManager;
+import com.cubrid.cubridmanager.ui.spi.action.CubridActionBuilder;
 
 import cm.performance.action.AddHostAction;
 import cm.performance.action.OpenQueryEditorAction;
@@ -25,6 +26,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     }
 
     protected void makeActions(IWorkbenchWindow window) {
+    	CubridActionBuilder.init();
+    	
     	addHostAction = new AddHostAction(window);
     	register(addHostAction);
     	openAction = new OpenQueryEditorAction(window);
