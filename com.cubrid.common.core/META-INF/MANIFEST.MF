@@ -24,6 +24,11 @@ Export-Package: com.cubrid.common.core,
  com.cubrid.common.core.schemacomment,
  com.cubrid.common.core.schemacomment.model,
  com.cubrid.common.core.task,
+ com.cubrid.common.core.task.impl,
  com.cubrid.common.core.util,
  com.navercorp.dbtools.sqlmap.parser,
- com.navercorp.dbtools.sqlmap.parser.impl
+ com.navercorp.dbtools.sqlmap.parser.impl,
+ org.slf4j,
+ org.slf4j.helpers,
+ org.slf4j.impl,
+ org.slf4j.spi

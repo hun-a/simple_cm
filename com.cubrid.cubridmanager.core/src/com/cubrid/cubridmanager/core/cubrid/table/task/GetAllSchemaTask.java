@@ -1,3 +1,30 @@
+/*
+ * Copyright (C) 2009 Search Solution Corporation. All rights reserved by Search
+ * Solution.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met: -
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer. - Redistributions in binary
+ * form must reproduce the above copyright notice, this list of conditions and
+ * the following disclaimer in the documentation and/or other materials provided
+ * with the distribution. - Neither the name of the <ORGANIZATION> nor the names
+ * of its contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 package com.cubrid.cubridmanager.core.cubrid.table.task;
 
 import java.sql.PreparedStatement;
@@ -35,8 +62,14 @@ import com.cubrid.cubridmanager.core.common.jdbc.JDBCTask;
 import com.cubrid.cubridmanager.core.cubrid.database.model.DatabaseInfo;
 import com.cubrid.cubridmanager.core.cubrid.table.model.DataType;
 
+/**
+ * Get all schema informations via JDBC (except system schemas)
+ *
+ * @author Isaiah Choe
+ * @version 1.0 - 2009-6-16 created by Isaiah Choe
+ */
 public class GetAllSchemaTask extends
-JDBCTask {
+		JDBCTask {
 	private static final Logger LOGGER = LogUtil.getLogger(GetAllSchemaTask.class);
 
 	private static final String VIRTUAL_NORMAL = "normal";
@@ -94,12 +127,12 @@ JDBCTask {
 			}
 			// get table/view information
 			getTableInfo();
-
+			
 			// get super class information
 			getSuperClassInfo();
 			// get auto increment information from db_serial table, which is a system table accessed by all users
 			getAutoIncrementInfo();
-
+			
 			/*Check is canceled*/
 			if (monitor != null && monitor.isCanceled()) {
 				setCancel(true);
@@ -110,7 +143,7 @@ JDBCTask {
 			getTypeInfo();
 			//get pk, fk, index(unique,reverse index, reverse unique)
 			getConstraintInfo();
-
+			
 			/*Check is canceled*/
 			if (monitor != null && monitor.isCanceled()) {
 				setCancel(true);
@@ -258,14 +291,14 @@ JDBCTask {
 		}
 
 		String sql = "SELECT a.attr_name, a.attr_type, a.from_class_name,"
-				+ " a.data_type, a.prec, a.scale, a.is_nullable,"
-				+ " a.domain_class_name, a.default_value, a.def_order,"
-				+ " c.is_system_class, c.class_type, c.partitioned, c.owner_name, c.class_name,"
-				+ " a.from_attr_name"
-				+ reuseOidCoulmn
-				+ " FROM db_attribute a, db_class c"
-				+ " WHERE c.class_name=a.class_name"
-				+ " ORDER BY a.class_name, a.def_order";
+			+ " a.data_type, a.prec, a.scale, a.is_nullable,"
+			+ " a.domain_class_name, a.default_value, a.def_order,"
+			+ " c.is_system_class, c.class_type, c.partitioned, c.owner_name, c.class_name,"
+			+ " a.from_attr_name"
+			+ reuseOidCoulmn
+			+ " FROM db_attribute a, db_class c"
+			+ " WHERE c.class_name=a.class_name"
+			+ " ORDER BY a.class_name, a.def_order";
 
 		// [TOOLS-2425]Support shard broker
 		sql = databaseInfo.wrapShardQuery(sql);
@@ -311,30 +344,30 @@ JDBCTask {
 
 				SchemaComment tableComment = isSupportComment ?
 						descriptions.get(className + "*") : null;
-						if (tableComment != null) {
-							schemaInfo.setDescription(tableComment.getDescription());
-						}
+				if (tableComment != null) {
+					schemaInfo.setDescription(tableComment.getDescription());
+				}
 
-						schemaInfo.setOwner(owner);
-						schemaInfo.setClassname(className);
-						schemaInfo.setDbname(dbName);
-						schemaInfo.setPartitionGroup(partitioned);
-						getColumnInfo(rs, schemaInfo, isSupportCharset, descriptions);
+				schemaInfo.setOwner(owner);
+				schemaInfo.setClassname(className);
+				schemaInfo.setDbname(dbName);
+				schemaInfo.setPartitionGroup(partitioned);
+				getColumnInfo(rs, schemaInfo, isSupportCharset, descriptions);
 
-						String fromAttrName = rs.getString("from_attr_name");
-						String attrName = rs.getString("attr_name");
-						if (StringUtil.isNotEmpty(fromAttrName) && !fromAttrName.equals(attrName)) {
-							DBResolution dbr = new DBResolution();
-							dbr.setAlias(attrName);
-							dbr.setClassName(rs.getString("from_class_name"));
-							dbr.setClassResolution(!rs.getString("attr_type").equals("INSTANCE"));
-							dbr.setName(fromAttrName);
-							schemaInfo.addResolution(dbr);
-						}
-
-						if (isSupportCharset && isNeedCollationInfo) {
-							GetSchemaTask.getTableCollation(connection, schemaInfo);
-						}
+				String fromAttrName = rs.getString("from_attr_name");
+				String attrName = rs.getString("attr_name");
+				if (StringUtil.isNotEmpty(fromAttrName) && !fromAttrName.equals(attrName)) {
+					DBResolution dbr = new DBResolution();
+					dbr.setAlias(attrName);
+					dbr.setClassName(rs.getString("from_class_name"));
+					dbr.setClassResolution(!rs.getString("attr_type").equals("INSTANCE"));
+					dbr.setName(fromAttrName);
+					schemaInfo.addResolution(dbr);
+				}
+				
+				if (isSupportCharset && isNeedCollationInfo) {
+					GetSchemaTask.getTableCollation(connection, schemaInfo);
+				}
 			}
 		} finally {
 			QueryUtil.freeQuery(stmt, rs);
@@ -399,18 +432,18 @@ JDBCTask {
 
 		SchemaComment columnSchema = descriptions != null ?
 				descriptions.get(schemaInfo.getClassname() + "*" + attrName) : null;
-				if (columnSchema != null) {
-					attr.setDescription(columnSchema.getDescription());
-				}
+		if (columnSchema != null) {
+			attr.setDescription(columnSchema.getDescription());
+		}
 
-				if ("INSTANCE".equals(type)) { //INSTANCE
-					schemaInfo.addAttribute(attr);
-				} else if ("CLASS".equals(type)) {
-					schemaInfo.addClassAttribute(attr);
-				} else {
-					attr.setShared(true);
-					schemaInfo.addAttribute(attr);
-				}
+		if ("INSTANCE".equals(type)) { //INSTANCE
+			schemaInfo.addAttribute(attr);
+		} else if ("CLASS".equals(type)) {
+			schemaInfo.addClassAttribute(attr);
+		} else {
+			attr.setShared(true);
+			schemaInfo.addAttribute(attr);
+		}
 	}
 
 	/**
@@ -672,7 +705,7 @@ JDBCTask {
 					subList = new ArrayList<SubAttribute>();
 					columnMap.put(attrName, subList);
 				}
-
+				
 				subList.add(new SubAttribute(type, subType));
 			}
 			for (Entry<String, Map<String, List<SubAttribute>>> entryMap : schemaColumnMap.entrySet()) {
@@ -782,50 +815,50 @@ JDBCTask {
 		}
 	}
 
-	///**
-	//* Convert data type string from db to strings to displayed in client.
-	//*
-	//* @param dataType String
-	//* @param prec String
-	//* @param scale String
-	//* @return local string of data type
-	//* 
-	//* @deprecated Use following static method instead:
-	//*             <br>com.cubrid.cubridmanager.core.cubrid.table.model.
-	//*             DataType.convertAttrTypeString(String, String, String);
-	//*/
-	//private String convertAttrTypeString(String dataType, String prec,
-	//	String scale) {
-	//String dt = dataType;
-	//if ("SHORT".equals(dt)) {
-	//	dt = ("smallint");
-	//} else if ("STRING".equals(dt)) {
-	//	dt = ("character varying" + "(" + prec + ")");
-	//} else if ("CHAR".equals(dt)) {
-	//	dt = ("character(" + prec + ")");
-	//} else if ("VARCHAR".equals(dt)) {
-	//	dt = ("character varying(" + prec + ")");
-	//} else if ("NCHAR".equals(dt)) {
-	//	dt = ("national character(" + prec + ")");
-	//} else if ("VARNCHAR".equals(dt)) {
-	//	dt = ("national character varying(" + prec + ")");
-	//} else if ("BIT".equals(dt)) {
-	//	dt = ("bit(" + prec + ")");
-	//} else if ("VARBIT".equals(dt)) {
-	//	dt = ("bit varying(" + prec + ")");
-	//} else if ("NUMERIC".equals(dt)) {
-	//	dt = ("numeric(" + prec + "," + scale + ")");
-	//} else if ("SET".equals(dt)) {
-	//	dt = ("set_of");
-	//} else if ("MULTISET".equals(dt)) {
-	//	dt = ("multiset_of");
-	//} else if ("SEQUENCE".equals(dt)) {
-	//	dt = ("sequence_of");
-	//} else {
-	//	dt = (dt.toLowerCase(Locale.getDefault()));
-	//}
-	//return dt;
-	//}
+//	/**
+//	 * Convert data type string from db to strings to displayed in client.
+//	 *
+//	 * @param dataType String
+//	 * @param prec String
+//	 * @param scale String
+//	 * @return local string of data type
+//	 * 
+//	 * @deprecated Use following static method instead:
+//	 *             <br>com.cubrid.cubridmanager.core.cubrid.table.model.
+//	 *             DataType.convertAttrTypeString(String, String, String);
+//	 */
+//	private String convertAttrTypeString(String dataType, String prec,
+//			String scale) {
+//		String dt = dataType;
+//		if ("SHORT".equals(dt)) {
+//			dt = ("smallint");
+//		} else if ("STRING".equals(dt)) {
+//			dt = ("character varying" + "(" + prec + ")");
+//		} else if ("CHAR".equals(dt)) {
+//			dt = ("character(" + prec + ")");
+//		} else if ("VARCHAR".equals(dt)) {
+//			dt = ("character varying(" + prec + ")");
+//		} else if ("NCHAR".equals(dt)) {
+//			dt = ("national character(" + prec + ")");
+//		} else if ("VARNCHAR".equals(dt)) {
+//			dt = ("national character varying(" + prec + ")");
+//		} else if ("BIT".equals(dt)) {
+//			dt = ("bit(" + prec + ")");
+//		} else if ("VARBIT".equals(dt)) {
+//			dt = ("bit varying(" + prec + ")");
+//		} else if ("NUMERIC".equals(dt)) {
+//			dt = ("numeric(" + prec + "," + scale + ")");
+//		} else if ("SET".equals(dt)) {
+//			dt = ("set_of");
+//		} else if ("MULTISET".equals(dt)) {
+//			dt = ("multiset_of");
+//		} else if ("SEQUENCE".equals(dt)) {
+//			dt = ("sequence_of");
+//		} else {
+//			dt = (dt.toLowerCase(Locale.getDefault()));
+//		}
+//		return dt;
+//	}
 
 	/**
 	 * Get super class information (partitioned table)

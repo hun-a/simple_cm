@@ -12,4 +12,8 @@ Bundle-ClassPath: .,
  lib/commons-lang-2.6.jar,
  lib/dom4j-1.6.1.jar
 Export-Package: com.cubrid.tool.editor,
- com.cubrid.tool.editor.dialog
+ com.cubrid.tool.editor.action,
+ com.cubrid.tool.editor.dialog,
+ com.cubrid.tool.editor.property,
+ com.cubrid.tool.editor.xml,
+ com.cubrid.tool.editor.xml.scanner

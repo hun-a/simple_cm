@@ -9,6 +9,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
 
+import com.cubrid.common.ui.spi.action.ActionManager;
+
 import cm.performance.action.AddHostAction;
 import cm.performance.action.OpenQueryEditorAction;
 import cm.performance.action.RunQueryAction;
