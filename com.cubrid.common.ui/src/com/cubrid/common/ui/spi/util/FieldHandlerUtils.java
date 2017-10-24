@@ -199,7 +199,7 @@ public final class FieldHandlerUtils {
 	 * @throws SQLException The exception
 	 */
 	public static Object getRsValueForExport(String colType,
-			CUBRIDResultSetProxy rs, int colNumber, String nullValue) throws SQLException {
+			ResultSet rs, int colNumber, String nullValue) throws SQLException {
 		Object result = null;
 		Object data = rs.getObject(colNumber);
 		if (data == null || DataType.isNullValueForExport(colType, data)) {
@@ -239,31 +239,31 @@ public final class FieldHandlerUtils {
 		} else if (DataType.DATATYPE_SET.equals(colType)
 				|| DataType.DATATYPE_MULTISET.equals(colType)
 				|| DataType.DATATYPE_SEQUENCE.equals(colType)) {
-			Object[] set = (Object[]) rs.getCollection(colNumber);
-			StringBuffer value = new StringBuffer("{");
-			for (int k = 0; k < set.length; k++) {
-				CUBRIDResultSetMetaDataProxy rsmt = (CUBRIDResultSetMetaDataProxy) rs.getMetaData();
-				String elemType = rsmt.getElementTypeName(colNumber);
-				if (k > 0) {
-					value.append(",");
-				}
-				Object setk = set[k];
-				if (setk == null) {
-					value.append(DataType.VALUE_NULL);
-				} else if (setk.getClass() == CUBRIDOIDProxy.getCUBRIDOIDClass(rs.getJdbcVersion())) {
-					value.append(DataType.VALUE_NULL);
-				} else {
-					if (DataType.DATATYPE_DATETIME.equals(elemType)) {
-						Timestamp datetime = (Timestamp) setk;
-						String datetimeStr = formatDateTime(datetime);
-						value.append(getCVSValueInSet(elemType, datetimeStr));
-					} else {
-						value.append(getCVSValueInSet(elemType, setk.toString()));
-					}
-				}
-			}
-			value.append("}");
-			result = value.toString();
+//			Object[] set = (Object[]) rs.getCollection(colNumber);
+//			StringBuffer value = new StringBuffer("{");
+//			for (int k = 0; k < set.length; k++) {
+//				CUBRIDResultSetMetaDataProxy rsmt = (CUBRIDResultSetMetaDataProxy) rs.getMetaData();
+//				String elemType = rsmt.getElementTypeName(colNumber);
+//				if (k > 0) {
+//					value.append(",");
+//				}
+//				Object setk = set[k];
+//				if (setk == null) {
+//					value.append(DataType.VALUE_NULL);
+//				} else if (setk.getClass() == CUBRIDOIDProxy.getCUBRIDOIDClass(rs.getJdbcVersion())) {
+//					value.append(DataType.VALUE_NULL);
+//				} else {
+//					if (DataType.DATATYPE_DATETIME.equals(elemType)) {
+//						Timestamp datetime = (Timestamp) setk;
+//						String datetimeStr = formatDateTime(datetime);
+//						value.append(getCVSValueInSet(elemType, datetimeStr));
+//					} else {
+//						value.append(getCVSValueInSet(elemType, setk.toString()));
+//					}
+//				}
+//			}
+//			value.append("}");
+//			result = value.toString();
 		} else if (DataType.DATATYPE_BLOB.equals(colType)) {
 			result = DataType.BLOB_EXPORT_FORMAT;
 		} else if (DataType.DATATYPE_CLOB.equals(colType)) {
