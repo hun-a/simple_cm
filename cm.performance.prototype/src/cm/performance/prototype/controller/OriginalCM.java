@@ -36,6 +36,7 @@ import com.cubrid.cubridmanager.core.cubrid.table.model.DataType;
 public class OriginalCM {
 	private static final String FORMAT_DOUBLE = "0.000000000000000E000";
 	private static final String FORMAT_FLOAT = "0.000000E000";
+	private final int MAX_DISPLAY_COUNT = 100;
 	private ResultSetDataCache resultSetDataCache;
 	private List<Map<String, CellValue>> allDataList = null;
 	private List<ColumnInfo> allColumnList = null;
@@ -47,6 +48,7 @@ public class OriginalCM {
 	private QueryInfo queryInfo = null;
 	public int pageLimit = 5000;
 	private boolean isEnd = false;
+	private int currentDisplayCount;
 	
 	public OriginalCM() {
 		allDataList = new ArrayList<Map<String, CellValue>>();
@@ -64,7 +66,6 @@ public class OriginalCM {
 				ResultSet rs = stmt.executeQuery(sql)) {
 			fillColumnData(rs);
 			fillTableItemData(rs);
-			print();
 			
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
@@ -87,6 +88,9 @@ public class OriginalCM {
 				result.append(value.getShowValue() + "\t");
 			}
 			result.append("\n");
+			if (++currentDisplayCount == MAX_DISPLAY_COUNT) {
+				break;
+			}
 		}
 		
 		System.out.println(result.toString());

@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -19,11 +20,11 @@ import java.util.Locale;
 import java.util.Map;
 
 import cm.performance.prototype.ConnectionManager;
+import cm.performance.prototype.model.RecordObjectIO;
 
 import com.cubrid.common.core.util.Closer;
 import com.cubrid.common.core.util.StringUtil;
 import com.cubrid.common.ui.cubrid.table.export.ResultSetDataCache;
-import com.cubrid.common.ui.query.Messages;
 import com.cubrid.common.ui.query.control.ColumnInfo;
 import com.cubrid.common.ui.query.control.QueryInfo;
 import com.cubrid.common.ui.spi.table.CellValue;
@@ -35,6 +36,7 @@ import com.cubrid.cubridmanager.core.cubrid.table.model.DataType;
 public class NewCM {
 	private static final String FORMAT_DOUBLE = "0.000000000000000E000";
 	private static final String FORMAT_FLOAT = "0.000000E000";
+	private final int MAX_DISPLAY_COUNT = 100;
 	private ResultSetDataCache resultSetDataCache;
 	private List<Map<String, CellValue>> allDataList = null;
 	private List<ColumnInfo> allColumnList = null;
@@ -45,43 +47,61 @@ public class NewCM {
 	private String multiQuerySql = null;
 	private QueryInfo queryInfo = null;
 	public int pageLimit = 5000;
-	private boolean isEnd = false;
+	private int currentDisplayCount;
+	private boolean isEndOfDisplay = false;
 	
-	private Map<Integer, String> resultFilePointer;
-	
+	RecordObjectIO<List<Map<String, CellValue>>> recordIO; 
+
 	public NewCM() {
 		allDataList = new ArrayList<Map<String, CellValue>>();
 		allColumnList = new ArrayList<ColumnInfo>();
-		resultFilePointer = new HashMap<Integer, String>();
+		recordIO = new RecordObjectIO<List<Map<String, CellValue>>>(pageLimit);
 		resultSetDataCache = new ResultSetDataCache();
 		formater4Double = new DecimalFormat();
 		formater4Double.applyPattern(FORMAT_DOUBLE);
 		formater4Float = new DecimalFormat();
 		formater4Float.applyPattern(FORMAT_FLOAT);
 	}
-	
+
 	public void run(String sql) {
 		try (Connection conn = ConnectionManager.getConnection();
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(sql)) {
 			fillColumnData(rs);
 			fillTableItemData(rs);
-			print();
-			
+
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void print() {
 		StringBuilder result = new StringBuilder();
-		
+
 		for (ColumnInfo info: allColumnList) {
 			result.append(String.format("%s(%s)\t", info.getName(), info.getType()));
 		}
 		result.append("\n\n");
 		
-		for (Map<String, CellValue> map: allDataList) {
+		for (int i = 0; i < recordIO.size(); i++) {
+			if (!isEndOfDisplay) {
+				List<Map<String, CellValue>> list = recordIO.getObjectFromFile(i + pageLimit);
+				processMapFromList(result, list);
+			}
+		}
+		if (!allDataList.isEmpty() && !isEndOfDisplay) {
+			processMapFromList(result, allDataList);
+		}
+
+		System.out.println(result.toString());
+	}
+
+	private void processMapFromList(StringBuilder result, List<Map<String, CellValue>> list) {
+		for (Map<String, CellValue> map: list) {
+			if (currentDisplayCount >= MAX_DISPLAY_COUNT) {
+				isEndOfDisplay = true;
+				return;
+			}
 			Iterator<String> keys = map.keySet().iterator();
 			while (keys.hasNext()) {
 				String key = keys.next();
@@ -89,11 +109,10 @@ public class NewCM {
 				result.append(value.getShowValue() + "\t");
 			}
 			result.append("\n");
+			currentDisplayCount++;
 		}
-		
-		System.out.println(result.toString());
 	}
-	
+
 	private void fillColumnData(ResultSet rs) throws SQLException {
 		ResultSetMetaData rsmt = rs.getMetaData();
 		int cntColumn = rsmt.getColumnCount();
@@ -110,14 +129,14 @@ public class NewCM {
 			if (typeName.length() == 0) {
 				int typeIndex = rsmt.getColumnType(i);
 				switch (typeIndex) {
-					case Types.BLOB:
-						typeName = DataType.DATATYPE_BLOB;
-						break;
-					case Types.CLOB:
-						typeName = DataType.DATATYPE_CLOB;
-						break;
-					default:
-						typeName = "";
+				case Types.BLOB:
+					typeName = DataType.DATATYPE_BLOB;
+					break;
+				case Types.CLOB:
+					typeName = DataType.DATATYPE_CLOB;
+					break;
+				default:
+					typeName = "";
 				}
 			}
 			String columnType = typeName.toUpperCase(Locale.getDefault());
@@ -128,7 +147,8 @@ public class NewCM {
 		}
 		resultSetDataCache.setColumnInfos(new ArrayList<ColumnInfo>(allColumnList));
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	private void fillTableItemData(ResultSet rs) throws SQLException {
 		cntRecord = 0;
 		while (rs.next()) {
@@ -137,7 +157,14 @@ public class NewCM {
 			addTableItemData(rs, -1);	// handling the just one row
 			resultSetDataCache.AddData(BuildCurrentRowData(rs));
 			if (recordLimit > 0 && cntRecord >= recordLimit && multiQuerySql == null) {
-				// save to file
+				// save the records to file
+				List<Map<String, CellValue>> list = (List<Map<String, CellValue>>)((ArrayList<Map<String, CellValue>>) allDataList).clone();
+				allDataList.clear();
+				allDataList = null;
+				allDataList = new ArrayList<Map<String, CellValue>>();
+				recordIO.saveObjectToFile("temp/" + Double.toString(Calendar.getInstance().getTimeInMillis()),
+						list);
+				cntRecord = 0;
 			}
 		}
 		if (multiQuerySql == null) {
@@ -145,12 +172,11 @@ public class NewCM {
 			queryInfo.setCurrentPage(1);
 		}
 	}
-	
-	
+
 	public ArrayList<Object> BuildCurrentRowData(ResultSet rs) throws SQLException {
 		int columnPos = 0, columnCount = allColumnList == null ? 0 : allColumnList.size();
 		ArrayList<Object> rowData = new ArrayList<Object>(columnCount);
-		
+
 		if (allColumnList != null) {
 			for (int j = 1; j <= columnCount; j++) {
 				ColumnInfo columnInfo = (ColumnInfo) allColumnList.get(columnPos);
@@ -170,11 +196,11 @@ public class NewCM {
 		}
 		return rowData;
 	}
-	
+
 	public Map<String, CellValue> addTableItemData(ResultSet rs, int idxInDataList) throws SQLException {
 		Map<String, CellValue> map = new HashMap<String, CellValue>();
 		int columnPos = 0, columnCount = allColumnList == null ? 0 : allColumnList.size();
-		
+
 		if (allColumnList != null) {
 			for (int j = 1; j <= columnCount; j++) {
 				ColumnInfo columnInfo = (ColumnInfo) allColumnList.get(columnPos);
@@ -204,7 +230,7 @@ public class NewCM {
 							showValue = DataType.BIT_EXPORT_FORMAT;
 						} else {
 							showValue = "X'" + DBAttrTypeFormatter.getHexString(dataTmp,
-										columnInfo.getPrecision()) + "'";
+									columnInfo.getPrecision()) + "'";
 						}
 						cellValue.setValue(dataTmp);
 						cellValue.setShowValue(showValue);
@@ -260,7 +286,7 @@ public class NewCM {
 		}
 		return map;
 	}
-	
+
 	private void loadBlobData(ResultSet rs, int columnIndex, CellValue cellValue) throws SQLException {
 		Blob blob = rs.getBlob(columnIndex);
 		if (blob == null) {
@@ -286,7 +312,7 @@ public class NewCM {
 			cellValue.setHasLoadAll(true);
 		}
 	}
-	
+
 	private void loadClobData(ResultSet rs, int columnIndex, CellValue cellValue) throws SQLException {
 		Reader reader = rs.getCharacterStream(columnIndex);
 		if (reader == null) {
