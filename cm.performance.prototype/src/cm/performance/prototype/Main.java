@@ -5,7 +5,7 @@ import cm.performance.prototype.controller.OriginalCM;
 
 public class Main {
 	public static void main(String ... args) {
-		String sql = "SELECT * FROM table_1 ORDER BY column_3 LIMIT 1000";
+		String sql = "select * from db_class a, db_class b, db_class c, db_class d";
 
 		long start = System.nanoTime();
 //		OriginalCM cm = new OriginalCM();

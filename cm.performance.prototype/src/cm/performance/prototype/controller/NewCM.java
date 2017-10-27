@@ -37,7 +37,6 @@ public class NewCM {
 	private static final String FORMAT_DOUBLE = "0.000000000000000E000";
 	private static final String FORMAT_FLOAT = "0.000000E000";
 	private final int MAX_DISPLAY_COUNT = 100;
-	private ResultSetDataCache resultSetDataCache;
 	private List<Map<String, CellValue>> allDataList = null;
 	private List<ColumnInfo> allColumnList = null;
 	private DecimalFormat formater4Double, formater4Float;
@@ -56,7 +55,6 @@ public class NewCM {
 		allDataList = new ArrayList<Map<String, CellValue>>();
 		allColumnList = new ArrayList<ColumnInfo>();
 		recordIO = new RecordObjectIO<List<Map<String, CellValue>>>(pageLimit);
-		resultSetDataCache = new ResultSetDataCache();
 		formater4Double = new DecimalFormat();
 		formater4Double.applyPattern(FORMAT_DOUBLE);
 		formater4Float = new DecimalFormat();
@@ -145,7 +143,6 @@ public class NewCM {
 					columnType, elementType, precision, scale);
 			allColumnList.add(colInfo);
 		}
-		resultSetDataCache.setColumnInfos(new ArrayList<ColumnInfo>(allColumnList));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -155,11 +152,9 @@ public class NewCM {
 			cntRecord++;
 			//add item data to the end of list
 			addTableItemData(rs, -1);	// handling the just one row
-			resultSetDataCache.AddData(BuildCurrentRowData(rs));
 			if (recordLimit > 0 && cntRecord >= recordLimit && multiQuerySql == null) {
-				// save the records to file
+				// save the records to file by shallow copy
 				List<Map<String, CellValue>> list = (List<Map<String, CellValue>>)((ArrayList<Map<String, CellValue>>) allDataList).clone();
-				allDataList.clear();
 				allDataList = null;
 				allDataList = new ArrayList<Map<String, CellValue>>();
 				recordIO.saveObjectToFile("temp/" + Double.toString(Calendar.getInstance().getTimeInMillis()),
@@ -205,7 +200,6 @@ public class NewCM {
 			for (int j = 1; j <= columnCount; j++) {
 				ColumnInfo columnInfo = (ColumnInfo) allColumnList.get(columnPos);
 				String columnType = columnInfo.getType();
-				String index = columnInfo.getIndex();
 				String showValue = null;
 				Object value = rs.getObject(j);
 				CellValue cellValue = new CellValue();
@@ -270,9 +264,11 @@ public class NewCM {
 						cellValue.setValue(value);
 						cellValue.setShowValue(showValue);
 					}
+					columnType = null;
+					showValue = null;
 				}
 
-				map.put(index, cellValue);
+				map.put(columnInfo.getIndex(), cellValue);
 				columnPos++;
 			}
 		}
