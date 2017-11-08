@@ -13,6 +13,6 @@ public class Timer {
 	}
 	
 	public static void printElapsedTime() {
-		System.out.println("** INFO **  elapsed time: " + (END - START) + "ms");
+		System.out.println("** INFO **  elapsed time: " + (END - START) / 1000 + "sec");
 	}
 }

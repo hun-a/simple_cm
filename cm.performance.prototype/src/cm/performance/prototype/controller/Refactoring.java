@@ -17,14 +17,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Scanner;
 
 import cm.performance.prototype.ConnectionManager;
+import cm.performance.prototype.event.renew.RecordInfo;
+import cm.performance.prototype.event.renew.RecordManager;
+import cm.performance.prototype.event.renew.RecordReaderEvent;
+import cm.performance.prototype.event.renew.RecordReaderListener;
+import cm.performance.prototype.event.renew.Timer;
 
 import com.cubrid.common.core.util.Closer;
 import com.cubrid.common.core.util.StringUtil;
-import com.cubrid.common.ui.cubrid.table.export.ResultSetDataCache;
-import com.cubrid.common.ui.query.Messages;
 import com.cubrid.common.ui.query.control.ColumnInfo;
 import com.cubrid.common.ui.query.control.QueryInfo;
 import com.cubrid.common.ui.spi.table.CellValue;
@@ -33,11 +36,9 @@ import com.cubrid.common.ui.spi.util.FieldHandlerUtils;
 import com.cubrid.cubridmanager.core.cubrid.table.model.DBAttrTypeFormatter;
 import com.cubrid.cubridmanager.core.cubrid.table.model.DataType;
 
-public class OriginalCM {
+public class Refactoring {
 	private static final String FORMAT_DOUBLE = "0.000000000000000E000";
 	private static final String FORMAT_FLOAT = "0.000000E000";
-	private final int MAX_DISPLAY_COUNT = 100;
-	private ResultSetDataCache resultSetDataCache;
 	private List<Map<String, CellValue>> allDataList = null;
 	private List<ColumnInfo> allColumnList = null;
 	private DecimalFormat formater4Double, formater4Float;
@@ -46,58 +47,105 @@ public class OriginalCM {
 	private final int recordLimit;
 	private String multiQuerySql = null;
 	private QueryInfo queryInfo = null;
-	public int pageLimit;
-	private boolean isEnd = false;
-	private int currentDisplayCount;
 	
-	public OriginalCM(int limit) {
-		recordLimit = pageLimit = limit;
+	private final String QUERY_EDITOR_ID = "New Query 1";
+	private final RecordManager<List<Map<String, CellValue>>> manager;
+	
+	public Refactoring(int limit) {
+		recordLimit = limit;
 		allDataList = new ArrayList<Map<String, CellValue>>();
 		allColumnList = new ArrayList<ColumnInfo>();
-		resultSetDataCache = new ResultSetDataCache();
 		formater4Double = new DecimalFormat();
 		formater4Double.applyPattern(FORMAT_DOUBLE);
 		formater4Float = new DecimalFormat();
 		formater4Float.applyPattern(FORMAT_FLOAT);
+		
+		manager = new RecordManager<>();
+		manager.addRecordReaderListener(new RecordReaderListener() {
+			
+			@Override
+			public void readEvent(RecordReaderEvent event) {
+				int currentIndex = 0;
+				// print
+				List<Map<String, CellValue>> list = manager.readSpecificRecords(QUERY_EDITOR_ID, currentIndex);
+				columnPrint();
+				recordPrint(list);
+				
+				Timer.end();
+				Timer.printElapsedTime();
+				System.out.format("\ncurrentPage: %d\n", currentIndex);
+				manager.removeRecordReaderListener(this);
+				
+				while (true) {
+					Scanner s = new Scanner(System.in);
+					String input = s.next();
+					
+					if (input.equals("<")) {
+						if (currentIndex > 0) {
+							recordPrint(manager.readSpecificRecords(
+									QUERY_EDITOR_ID, --currentIndex));
+						}
+					} else if(input.equals(">")) {
+						if (currentIndex < manager.size(QUERY_EDITOR_ID)) {
+							recordPrint(manager.readSpecificRecords(
+									QUERY_EDITOR_ID, ++currentIndex));
+						}
+					} else if(input.equals("q")) {
+						System.out.println("Good bye~");
+						break;
+					}
+					System.out.format("\ncurrentPage: %d\n", currentIndex);
+				}
+				manager.remove(QUERY_EDITOR_ID);
+				System.exit(0);
+			}
+		});
 	}
-	
+
 	public void run(String sql) {
 		try (Connection conn = ConnectionManager.getConnection();
 				Statement stmt = conn.createStatement();
 				ResultSet rs = stmt.executeQuery(sql)) {
+			
+			RecordInfo.getInstance().setNewInfo(QUERY_EDITOR_ID, 5000);
+			
 			fillColumnData(rs);
 			fillTableItemData(rs);
 			
-			print();
+			if (manager.isEmpty(QUERY_EDITOR_ID)) {
+				columnPrint();
+				recordPrint(allDataList);
+			}
+			
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
-		}
+		} 
 	}
 	
-	public void print() {
+	private void columnPrint() {
 		StringBuilder result = new StringBuilder();
-		
+
 		for (ColumnInfo info: allColumnList) {
 			result.append(String.format("%s(%s)\t", info.getName(), info.getType()));
 		}
-		result.append("\n\n");
-		
-		for (Map<String, CellValue> map: allDataList) {
-			Iterator<String> keys = map.keySet().iterator();
-			while (keys.hasNext()) {
-				String key = keys.next();
-				CellValue value = map.get(key);
-				result.append(value.getShowValue() + "\t");
-			}
-			result.append("\n");
-			if (++currentDisplayCount == MAX_DISPLAY_COUNT) {
-				break;
-			}
-		}
-		
+		result.append("\n");
 		System.out.println(result.toString());
 	}
-	
+
+	public void recordPrint(List<Map<String, CellValue>> records) {
+		StringBuilder result = new StringBuilder();
+
+		for (Map<String, CellValue> record: records) {
+			Iterator<String> keys = record.keySet().iterator();
+			while (keys.hasNext()) {
+				CellValue data = record.get(keys.next());
+				result.append(data.getShowValue() + "\t");
+			}
+			result.append("\n");
+		}
+		System.out.println(result.append("\n").toString());
+	}
+
 	private void fillColumnData(ResultSet rs) throws SQLException {
 		ResultSetMetaData rsmt = rs.getMetaData();
 		int cntColumn = rsmt.getColumnCount();
@@ -114,14 +162,14 @@ public class OriginalCM {
 			if (typeName.length() == 0) {
 				int typeIndex = rsmt.getColumnType(i);
 				switch (typeIndex) {
-					case Types.BLOB:
-						typeName = DataType.DATATYPE_BLOB;
-						break;
-					case Types.CLOB:
-						typeName = DataType.DATATYPE_CLOB;
-						break;
-					default:
-						typeName = "";
+				case Types.BLOB:
+					typeName = DataType.DATATYPE_BLOB;
+					break;
+				case Types.CLOB:
+					typeName = DataType.DATATYPE_CLOB;
+					break;
+				default:
+					typeName = "";
 				}
 			}
 			String columnType = typeName.toUpperCase(Locale.getDefault());
@@ -130,66 +178,41 @@ public class OriginalCM {
 					columnType, elementType, precision, scale);
 			allColumnList.add(colInfo);
 		}
-		resultSetDataCache.setColumnInfos(new ArrayList<ColumnInfo>(allColumnList));
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	private void fillTableItemData(ResultSet rs) throws SQLException {
 		cntRecord = 0;
-		int limit = recordLimit;
+		int index = 0;
 		while (rs.next()) {
 			cntRecord++;
 			//add item data to the end of list
-			addTableItemData(rs, -1);
-			resultSetDataCache.AddData(BuildCurrentRowData(rs));
-			if (recordLimit > 0 && cntRecord >= limit && multiQuerySql == null) {
-				final String msg = Messages.bind(Messages.tooManyRecord, limit);
-				if (isEnd) {
-					break;
-				} else {
-					limit += recordLimit;
-				}
+			addTableItemData(rs, -1);	// handling the just one row
+			if (recordLimit > 0 && cntRecord >= recordLimit && multiQuerySql == null) {
+				// save the records to file by shallow copy
+				List<Map<String, CellValue>> list = (List<Map<String, CellValue>>)((ArrayList<Map<String, CellValue>>) allDataList).clone();
+				allDataList = null;
+				allDataList = new ArrayList<Map<String, CellValue>>();
+				
+				manager.write(list, QUERY_EDITOR_ID, index++);
+				
+				cntRecord = 0;
 			}
 		}
 		if (multiQuerySql == null) {
-			queryInfo = new QueryInfo(cntRecord, pageLimit);
+			queryInfo = new QueryInfo(cntRecord, recordLimit);
 			queryInfo.setCurrentPage(1);
 		}
 	}
-	
-	
-	public ArrayList<Object> BuildCurrentRowData(ResultSet rs) throws SQLException {
-		int columnPos = 0, columnCount = allColumnList == null ? 0 : allColumnList.size();
-		ArrayList<Object> rowData = new ArrayList<Object>(columnCount);
-		
-		if (allColumnList != null) {
-			for (int j = 1; j <= columnCount; j++) {
-				ColumnInfo columnInfo = (ColumnInfo) allColumnList.get(columnPos);
-				String columnType = columnInfo.getType();
-				int index = Integer.valueOf(columnInfo.getIndex());
-				Object value = null;
-				if (DataType.DATATYPE_BLOB.equals(columnType)) {
-					value = rs.getBlob(index);
-				} else if (DataType.DATATYPE_CLOB.equals(columnType)) {
-					value = rs.getClob(index);
-				}else{
-					value = FieldHandlerUtils.getRsValueForExport(columnType, rs, index, null);
-				}
-				rowData.add(value);
-				columnPos++;
-			}
-		}
-		return rowData;
-	}
-	
+
 	public Map<String, CellValue> addTableItemData(ResultSet rs, int idxInDataList) throws SQLException {
 		Map<String, CellValue> map = new HashMap<String, CellValue>();
 		int columnPos = 0, columnCount = allColumnList == null ? 0 : allColumnList.size();
-		
+
 		if (allColumnList != null) {
 			for (int j = 1; j <= columnCount; j++) {
 				ColumnInfo columnInfo = (ColumnInfo) allColumnList.get(columnPos);
 				String columnType = columnInfo.getType();
-				String index = columnInfo.getIndex();
 				String showValue = null;
 				Object value = rs.getObject(j);
 				CellValue cellValue = new CellValue();
@@ -214,7 +237,7 @@ public class OriginalCM {
 							showValue = DataType.BIT_EXPORT_FORMAT;
 						} else {
 							showValue = "X'" + DBAttrTypeFormatter.getHexString(dataTmp,
-										columnInfo.getPrecision()) + "'";
+									columnInfo.getPrecision()) + "'";
 						}
 						cellValue.setValue(dataTmp);
 						cellValue.setShowValue(showValue);
@@ -254,9 +277,11 @@ public class OriginalCM {
 						cellValue.setValue(value);
 						cellValue.setShowValue(showValue);
 					}
+					columnType = null;
+					showValue = null;
 				}
 
-				map.put(index, cellValue);
+				map.put(columnInfo.getIndex(), cellValue);
 				columnPos++;
 			}
 		}
@@ -270,7 +295,7 @@ public class OriginalCM {
 		}
 		return map;
 	}
-	
+
 	private void loadBlobData(ResultSet rs, int columnIndex, CellValue cellValue) throws SQLException {
 		Blob blob = rs.getBlob(columnIndex);
 		if (blob == null) {
@@ -296,7 +321,7 @@ public class OriginalCM {
 			cellValue.setHasLoadAll(true);
 		}
 	}
-	
+
 	private void loadClobData(ResultSet rs, int columnIndex, CellValue cellValue) throws SQLException {
 		Reader reader = rs.getCharacterStream(columnIndex);
 		if (reader == null) {

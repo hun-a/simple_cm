@@ -71,18 +71,19 @@ public class RecordManager<T> {
 				ObjectOutputStream out = null;
 				
 				try {
-					String fileName = index + ".temp";
+					String fileName = "temp/" + Long.toString(System.currentTimeMillis());
 					out = new ObjectOutputStream(new FileOutputStream(fileName));
-					out.writeObject(new Integer(index));
+					out.writeObject(t);
 					out.flush();
 					
-					File f = new File(".");
-					String[] files = f.list();
-					for (String s: files) {
-						if (s.equals(fileName)) {
-							System.out.println("info] write the " + s + " is done!");
-						}
-					}
+					// for debug
+//					File f = new File(".");
+//					String[] files = f.list();
+//					for (String s: files) {
+//						if (s.equals(fileName)) {
+//							System.out.println("info] write the " + s + " is done!");
+//						}
+//					}
 					
 					synchronized (this) {
 						setFileName(queryEditorId, index, fileName);
@@ -111,5 +112,13 @@ public class RecordManager<T> {
 	
 	public void remove(String key) {
 		RecordInfo.getInstance().remove(key);
+	}
+	
+	public int size(String key) {
+		return RecordInfo.getInstance().size(key);
+	}
+	
+	public boolean isEmpty(String key) {
+		return size(key) <= 0;
 	}
 }

@@ -1,17 +1,16 @@
 package cm.performance.prototype;
 
-import cm.performance.prototype.controller.NewCM;
 import cm.performance.prototype.controller.OriginalCM;
+import cm.performance.prototype.controller.Refactoring;
+import cm.performance.prototype.event.renew.Timer;
 
 public class Main {
 	public static void main(String ... args) {
-		String sql = "select * from db_class a, db_class b, db_class c, db_class d";
+		Timer.start();
+		String sql = "select rownum, a.* from db_class a, db_class b, db_class c, db_class d";
 
-		long start = System.nanoTime();
-//		OriginalCM cm = new OriginalCM();
-		NewCM cm = new NewCM();
+//		OriginalCM cm = new OriginalCM(500);
+		Refactoring cm = new Refactoring(500);
 		cm.run(sql);
-		cm.print();
-		System.out.println("\n\nelapsed time: " + (System.nanoTime() - start) / 1_000_000 + "ms");
 	}
 }

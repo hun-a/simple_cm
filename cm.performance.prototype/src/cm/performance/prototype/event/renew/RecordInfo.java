@@ -43,10 +43,16 @@ public class RecordInfo {
 	}
 
 	public void remove(String key) {
-		for (Map.Entry<Integer, String> element: info.get(key).entrySet()) {
-			new File(element.getValue()).delete();
+		Map<Integer, String> map = info.get(key);
+		int length = map.size() - 1;
+		for (int i = 0; i < length; i++) {
+			String fileName = map.get(i);
+			new File(fileName).delete();
 		}
-
 		info.remove(key);
+	}
+	
+	public int size(String key) {
+		return info.get(key).size() - 1;
 	}
 }
