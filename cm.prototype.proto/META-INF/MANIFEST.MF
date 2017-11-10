@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Proto
+Bundle-SymbolicName: cm.prototype.proto
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: com.cubrid.common.configuration;bundle-version="9.3.1",
+ com.cubrid.common.core;bundle-version="1.0.0",
+ com.cubrid.common.ui;bundle-version="1.0.0",
+ com.cubrid.cubridmanager.core;bundle-version="1.0.0",
+ org.eclipse.jface;bundle-version="3.7.0",
+ org.eclipse.core.runtime;bundle-version="3.7.0"

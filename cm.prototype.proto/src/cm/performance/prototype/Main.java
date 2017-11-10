@@ -8,8 +8,8 @@ public class Main {
 		Timer.start();
 		String sql = "select rownum, a.* from db_class a, db_class b, db_class c, db_class d";
 
-		OriginalCM cm = new OriginalCM(500);
-//		Refactoring cm = new Refactoring(500);
+//		OriginalCM cm = new OriginalCM(500);
+		Refactoring cm = new Refactoring(500);
 		cm.run(sql);
 	}
 }
