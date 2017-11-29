@@ -3,8 +3,15 @@ package cm.performance.app;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+
+import com.cubrid.common.core.util.ApplicationType;
+import com.cubrid.common.core.util.LogUtil;
+import com.cubrid.common.ui.common.dialog.SelectWorkspaceDialog;
+import com.cubrid.common.ui.spi.util.CommonUITool;
+import com.cubrid.cubridmanager.ui.spi.Version;
 
 /**
  * This class controls all aspects of the application's execution
@@ -17,6 +24,12 @@ public class Application implements IApplication {
 	public Object start(IApplicationContext context) throws Exception {
 		Display display = PlatformUI.createDisplay();
 		try {
+			Shell shell = CommonUITool.getSplashShell(display);
+			if (!SelectWorkspaceDialog.pickWorkspaceDir(shell, ApplicationType.CUBRID_MANAGER.getShortName(), Version.buildVersionId)) {
+				context.applicationRunning();
+				return IApplication.EXIT_OK;
+			}
+
 			int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor());
 			if (returnCode == PlatformUI.RETURN_RESTART)
 				return IApplication.EXIT_RESTART;
@@ -25,7 +38,6 @@ public class Application implements IApplication {
 		} finally {
 			display.dispose();
 		}
-		
 	}
 
 	/* (non-Javadoc)

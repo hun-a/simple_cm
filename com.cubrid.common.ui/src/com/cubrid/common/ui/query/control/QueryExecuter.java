@@ -129,6 +129,7 @@ import com.cubrid.common.ui.spi.ResourceManager;
 import com.cubrid.common.ui.spi.action.ActionManager;
 import com.cubrid.common.ui.spi.action.FocusAction;
 import com.cubrid.common.ui.spi.model.CubridDatabase;
+import com.cubrid.common.ui.spi.persist.PersistUtils;
 import com.cubrid.common.ui.spi.persist.QueryOptions;
 import com.cubrid.common.ui.spi.progress.ExecTaskWithProgress;
 import com.cubrid.common.ui.spi.table.CellValue;
@@ -231,6 +232,7 @@ public class QueryExecuter implements IShowMoreOperator{ // FIXME very complicat
 	private String queryPlanLog;
 	private String textData = "";
 	private List<String> columnTableNames;
+	private String writeLocation;
 
 	public QueryExecuter(QueryEditorPart qe, int idx, String query, CubridDatabase cubridDatabase, DBConnection con,
 			List<PstmtParameter> parameterList, String orignQuery) {
@@ -275,6 +277,9 @@ public class QueryExecuter implements IShowMoreOperator{ // FIXME very complicat
 			formater4Float.setMaximumIntegerDigits(38);
 			formater4Float.setMaximumFractionDigits(7);
 		}
+
+		writeLocation = PersistUtils.getGlobalPreference(
+				CommonUIPlugin.PLUGIN_ID).get("RECENT_WORKSPACES", null) + File.separator + "temp";
 	}
 
 	public QueryExecuter(QueryEditorPart qe, int idx, String query, CubridDatabase cubridDatabase,
@@ -604,7 +609,7 @@ public class QueryExecuter implements IShowMoreOperator{ // FIXME very complicat
 			//add item data to the end of list
 			addTableItemData(rs, -1);
 			resultSetDataCache.AddData(BuildCurrentRowData(rs));
-			if (recordLimit > 0 && cntRecord >= limit && multiQuerySql == null) {
+			if (recordLimit > 0 && cntRecord >= limit && multiQuerySql == null) {	// check this statement
 				final String msg = Messages.bind(Messages.tooManyRecord, limit);
 				showQueryTip(msg);
 				if (isEnd) {
