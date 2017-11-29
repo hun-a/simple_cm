@@ -80,10 +80,10 @@ public final class JDBCConnectionManager {
 		String url = "jdbc:cubrid:" + brokerIP + ":" + brokerPort + ":"
 				+ dbName + ":::";
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("connection url=" + url + ", charset="
-					+ (charset == null ? "" : charset));
-		}
+//		if (LOGGER.isDebugEnabled()) {
+//			LOGGER.debug("connection url=" + url + ", charset="
+//					+ (charset == null ? "" : charset));
+//		}
 
 		Driver cubridDriver = CubridClassLoaderPool.getCubridDriver(driverVersion);
 		//can't get connection throw DriverManger

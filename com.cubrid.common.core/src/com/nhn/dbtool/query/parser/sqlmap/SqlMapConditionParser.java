@@ -31,10 +31,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.slf4j.Logger;
 
+import com.cubrid.common.core.util.LogUtil;
 import com.nhn.dbtool.query.parser.sqlmap.model.MyBatisTestCondition;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapCondition;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapQuery;
@@ -46,7 +47,7 @@ import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapQuery;
  */
 public class SqlMapConditionParser {
 	@SuppressWarnings("unused")
-	private Logger logger = Logger.getLogger(SqlMapConditionParser.class);
+	private Logger logger = LogUtil.getLogger(SqlMapConditionParser.class);
 
 	/**
 	 * MyBatis mapper xml의 "test" attribute만 파싱하는 MyBatis 전용 파서

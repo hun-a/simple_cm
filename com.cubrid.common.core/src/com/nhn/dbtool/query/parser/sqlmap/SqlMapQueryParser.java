@@ -30,10 +30,11 @@ package com.nhn.dbtool.query.parser.sqlmap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.slf4j.Logger;
 
+import com.cubrid.common.core.util.LogUtil;
 import com.nhn.dbtool.query.parser.sqlmap.model.MyBatisTestCondition;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapCondition;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapParameter;
@@ -45,7 +46,7 @@ import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapQuery;
  * @author Bumsik, Jang
  */
 public class SqlMapQueryParser {
-	private Logger logger = Logger.getLogger(SqlMapQueryParser.class);
+	private Logger logger = LogUtil.getLogger(SqlMapQueryParser.class);
 
 	/**
 	 * Query 단위의 Element를 통해 SqlMapQuery를 생성한다.

@@ -36,15 +36,16 @@ import java.util.List;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
 import org.xml.sax.InputSource;
 
 import com.cubrid.common.core.Messages;
+import com.cubrid.common.core.util.LogUtil;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapCondition;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapFile;
 import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapParameter;
@@ -57,7 +58,7 @@ import com.nhn.dbtool.query.parser.sqlmap.model.SqlMapQuery;
  * @author Bumsik, Jang
  */
 public class Parser {
-	private Logger logger = Logger.getLogger(Parser.class);
+	private Logger logger = LogUtil.getLogger(Parser.class);
 
 	/**
 	 * 멀티파일 include 처리위해 sql 엘리먼트 타입만 저장하는 참조용 SqlMapQuery 해쉬맵 인스턴스

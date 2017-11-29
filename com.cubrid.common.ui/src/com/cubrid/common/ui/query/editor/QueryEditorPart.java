@@ -1271,10 +1271,10 @@ public class QueryEditorPart extends
 	 */
 	private void runQuery(boolean isOnlyQueryPlan, boolean isSqlmapQuery, String queries,
 			List<List<PstmtParameter>> rowParameterList) { // FIXME move this logic to core module
-		if (!isConnected()) {
-			CommonUITool.openErrorBox(Messages.qedit_tip_run_query);
-			return;
-		}
+//		if (!isConnected()) {
+//			CommonUITool.openErrorBox(Messages.qedit_tip_run_query);
+//			return;
+//		}
 		if (StringUtil.isEmpty(queries)) {
 			return;
 		}
@@ -2608,8 +2608,8 @@ public class QueryEditorPart extends
 
 				if (queries.isEmpty()) {
 					return;
-				} else if (database.getDatabaseInfo().isShard()) {
-					// Shard didn't support to get an isolation yet
+//				} else if (database.getDatabaseInfo().isShard()) {
+//					// Shard didn't support to get an isolation yet
 				} else {
 					isIsolationHigher = isIsolationHigherThanRepeatableRead(con.checkAndConnect(),
 							isActive);

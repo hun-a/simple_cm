@@ -614,10 +614,11 @@ public class DatabaseNavigatorMenu {
 	 */
 	public void setDatabase(CubridDatabase database) {
 		//show the selected database menu item
-		if ((database.isLogined() && database.getRunningType() == DbRunningType.CS)) {
-			DatabaseMenuItem item = findById(database.getId());
-			selectMenuItem(item);
-		}
+//		if ((database.isLogined() && database.getRunningType() == DbRunningType.CS)) {
+//			DatabaseMenuItem item = findById(database.getId());
+//			selectMenuItem(item);
+//		}
+		selectdDb = database;
 		editor.refreshQueryOptions();
 	}
 

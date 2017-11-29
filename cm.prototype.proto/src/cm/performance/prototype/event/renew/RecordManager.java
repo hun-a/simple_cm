@@ -1,6 +1,5 @@
 package cm.performance.prototype.event.renew;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -75,15 +74,6 @@ public class RecordManager<T> {
 					out = new ObjectOutputStream(new FileOutputStream(fileName));
 					out.writeObject(t);
 					out.flush();
-					
-					// for debug
-//					File f = new File(".");
-//					String[] files = f.list();
-//					for (String s: files) {
-//						if (s.equals(fileName)) {
-//							System.out.println("info] write the " + s + " is done!");
-//						}
-//					}
 					
 					synchronized (this) {
 						setFileName(queryEditorId, index, fileName);
