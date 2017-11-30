@@ -91,6 +91,7 @@ import com.cubrid.common.ui.query.action.CopyAction;
 import com.cubrid.common.ui.query.action.CutAction;
 import com.cubrid.common.ui.query.action.FindReplaceAction;
 import com.cubrid.common.ui.query.action.PasteAction;
+import com.cubrid.common.ui.query.action.QueryConnectionAction;
 import com.cubrid.common.ui.query.action.QueryOpenAction;
 import com.cubrid.common.ui.query.action.RedoAction;
 import com.cubrid.common.ui.query.action.UndoAction;
@@ -189,7 +190,7 @@ public class QueryEditorPart extends
 	/*Query thread*/
 	private Thread queryThread;
 	private int line;
-	private boolean isRunning = false;
+	private Boolean isRunning = false;
 	private AtomicInteger runningCount = new AtomicInteger(0);
 
 	private QueryExecuter result = null;
@@ -220,6 +221,7 @@ public class QueryEditorPart extends
 
 	private boolean willClose = false;
 	private TuneModeResultWindow tuneModeView;
+	private QueryEditorResult queryEditorResult;
 
 	/*Record the editor index*/
 	private static int lastEditorIndex = 1;
@@ -238,9 +240,6 @@ public class QueryEditorPart extends
 		this.setInput(input);
 		this.setPartName(input.getName());
 		this.setTitleToolTip(input.getToolTipText());
-//		if (input.getImageDescriptor() != null) {
-//			this.setTitleImage(input.getImageDescriptor().createImage());
-//		}
 		hookRetragetActions();
 		this.getSite().getPage().addPartListener(new IPartListener() {
 
@@ -388,7 +387,8 @@ public class QueryEditorPart extends
 					switch (buttonId) {
 					case 0:
 						try {
-							queryAction(QUERY_ACTION.COMMIT);
+							QueryConnectionAction.queryAction(connection,
+									QueryConnectionAction.TYPE.COMMIT);
 						} catch (SQLException ex) {
 							CommonUITool.openErrorBox(Messages.bind(
 									com.cubrid.common.ui.common.Messages.errCommonTip,
@@ -400,7 +400,8 @@ public class QueryEditorPart extends
 						break;
 					case 1:
 						try {
-							queryAction(QUERY_ACTION.ROLLBACK);
+							QueryConnectionAction.queryAction(connection,
+									QueryConnectionAction.TYPE.ROLLBACK);
 						} catch (SQLException ex) {
 							CommonUITool.openErrorBox(Messages.bind(
 									com.cubrid.common.ui.common.Messages.errCommonTip,
@@ -418,7 +419,8 @@ public class QueryEditorPart extends
 			int returnVal = dialog.open();
 			if (returnVal != 0 && returnVal != 1) {
 				try {
-					queryAction(QUERY_ACTION.ROLLBACK);
+					QueryConnectionAction.queryAction(connection,
+							QueryConnectionAction.TYPE.ROLLBACK);
 				} catch (SQLException ex) {
 					LOGGER.error("", ex);
 					String errmsg = Messages.bind(
@@ -431,7 +433,8 @@ public class QueryEditorPart extends
 
 		try {
 			if (connection.hasConnection()) {
-				queryAction(QUERY_ACTION.CLOSE);
+				QueryConnectionAction.queryAction(connection,
+						QueryConnectionAction.TYPE.CLOSE);
 			}
 			if (queryThread != null && !queryThread.isInterrupted()) {
 				queryThread.interrupt();
@@ -533,6 +536,7 @@ public class QueryEditorPart extends
 		createToolBar();
 		//create SQL editor tab folder
 		createCombinedQueryEditorCTabFolder();
+		queryEditorResult = new QueryEditorResult(this);
 	}
 
 	public void createToolBar() {
@@ -545,11 +549,6 @@ public class QueryEditorPart extends
 		toolBarComposite.setLayout(gridLayout);
 		qeToolBar = new EditorToolBar(toolBarComposite, this);
 		fillInToolbar();
-	}
-
-	private void createTuneModeView() {
-		tuneModeView = new TuneModeResultWindow(this);
-		tuneModeView.open();
 	}
 
 	public void fillInToolbar() {
@@ -568,7 +567,6 @@ public class QueryEditorPart extends
 							: database.getServer().getServerInfo();
 					boolean autoCommit = QueryOptions.getAutoCommit(serverInfo);
 					setAutocommit(autoCommit);
-
 				}
 			}
 		});
@@ -852,7 +850,6 @@ public class QueryEditorPart extends
 				}
 			}
 		});
-		setAutocommit(true);
 
 		new ToolItem(toolBar, SWT.SEPARATOR);
 
@@ -911,8 +908,9 @@ public class QueryEditorPart extends
 			}
 		});
 
+		setAutocommit(true);
 		topComposite.pack();
-		packToolBar();
+		qeToolBar.pack();
 	}
 
 	/**
@@ -1014,7 +1012,8 @@ public class QueryEditorPart extends
 		setHaveActiveTransaction(false);
 		try {
 			if (connection.hasConnection()) {
-				queryAction(QUERY_ACTION.AUTOCOMMIT, isAutocommit);
+				QueryConnectionAction.queryAction(connection,
+						QueryConnectionAction.TYPE.AUTOCOMMIT, isAutocommit);
 			}
 		} catch (SQLException e) {
 			String msg = Messages.cantChangeStatus + StringUtil.NEWLINE + e.getErrorCode()
@@ -1812,7 +1811,7 @@ public class QueryEditorPart extends
 				statement = null;
 
 				if (collectExecStats) {
-					displayTuneModeResult(new TuneModeModel(sq, null));
+					queryEditorResult.displayTuneModeResult(new TuneModeModel(sq, null));
 				}
 			}
 		} catch (Exception ee) {
@@ -1824,7 +1823,8 @@ public class QueryEditorPart extends
 
 			if (isAutocommit) {
 				try {
-					queryAction(QUERY_ACTION.ROLLBACK);
+					QueryConnectionAction.queryAction(connection,
+							QueryConnectionAction.TYPE.ROLLBACK);
 				} catch (SQLException e1) {
 					LOGGER.error("", e1);
 				}
@@ -2268,7 +2268,8 @@ public class QueryEditorPart extends
 	public void shutDownConnection() {
 		if (connection.hasConnection()) {
 			try {
-				queryAction(QUERY_ACTION.CLOSE);
+				QueryConnectionAction.queryAction(connection,
+						QueryConnectionAction.TYPE.CLOSE);
 			} catch (SQLException e) {
 				CommonUITool.openErrorBox(StringUtil.getStackTrace(e, "\n"));
 			}
@@ -2321,9 +2322,11 @@ public class QueryEditorPart extends
 	public void updateResult(String strOid, String[] column, Object[] value) throws SQLException {
 		connection.checkAndConnectQuietly();
 		if (isAutocommit) {
-			queryAction(QUERY_ACTION.AUTOCOMMIT, true);
+			QueryConnectionAction.queryAction(connection,
+					QueryConnectionAction.TYPE.AUTOCOMMIT, true);
 		} else {
-			queryAction(QUERY_ACTION.AUTOCOMMIT, false);
+			QueryConnectionAction.queryAction(connection,
+					QueryConnectionAction.TYPE.AUTOCOMMIT, false);
 		}
 		CUBRIDOIDProxy oid = CUBRIDOIDProxy.getNewInstance(
 				(CUBRIDConnectionProxy) connection.getConnection(), strOid);
@@ -2334,7 +2337,8 @@ public class QueryEditorPart extends
 		}
 		oid.setValues(column, value);
 		if (isAutocommit) {
-			queryAction(QUERY_ACTION.COMMIT);
+			QueryConnectionAction.queryAction(connection,
+					QueryConnectionAction.TYPE.COMMIT);
 		}
 		Display.getDefault().syncExec(new Runnable() {
 			public void run() {
@@ -2399,36 +2403,26 @@ public class QueryEditorPart extends
 		return isActive;
 	}
 
+	public void setIsActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
 	public static boolean isNotNeedQuote(String type) {
 		if (DataType.DATATYPE_BIGINT.equals(type)
-				//				|| DataType.DATATYPE_BIT.equals(type)
-				//				|| DataType.DATATYPE_BIT_VARYING.equals(type)
-				//				|| DataType.DATATYPE_BLOB.equals(type)
-				//				|| DataType.DATATYPE_CLASS.equals(type)
-				//				|| DataType.DATATYPE_CLOB.equals(type)
 				|| DataType.DATATYPE_CURRENCY.equals(type)
-				//				|| DataType.DATATYPE_DATE.equals(type)
-				//				|| DataType.DATATYPE_DATETIME.equals(type)
 				|| DataType.DATATYPE_DECIMAL.equals(type)
 				|| DataType.DATATYPE_DOUBLE.equals(type)
 				|| DataType.DATATYPE_FLOAT.equals(type)
 				|| DataType.DATATYPE_INT.equals(type)
 				|| DataType.DATATYPE_INTEGER.equals(type)
 				|| DataType.DATATYPE_MONETARY.equals(type)
-				//				|| DataType.DATATYPE_MULTISET.equals(type)
 				|| DataType.DATATYPE_NATIONAL_CHARACTER.equals(type)
 				|| DataType.DATATYPE_NATIONAL_CHARACTER_VARYING.equals(type)
 				|| DataType.DATATYPE_NCHAR.equals(type)
 				|| DataType.DATATYPE_NCHAR_VARYING.equals(type)
 				|| DataType.DATATYPE_NUMERIC.equals(type)
-				//				|| DataType.DATATYPE_OBJECT.equals(type)
-				//				|| DataType.DATATYPE_OID.equals(type)
 				|| DataType.DATATYPE_REAL.equals(type)
-				//				|| DataType.DATATYPE_SEQUENCE.equals(type)
-				//				|| DataType.DATATYPE_SET.equals(type)
 				|| DataType.DATATYPE_SHORT.equals(type) || DataType.DATATYPE_SMALLINT.equals(type)
-				//				|| DataType.DATATYPE_TIME.equals(type)
-				//				|| DataType.DATATYPE_TIMESTAMP.equals(type)
 				|| DataType.DATATYPE_TINYINT.equals(type)) {
 			return true;
 		}
@@ -2511,7 +2505,8 @@ public class QueryEditorPart extends
 		}
 
 		if (isAutocommit) {
-			queryAction(QUERY_ACTION.COMMIT);
+			QueryConnectionAction.queryAction(connection,
+					QueryConnectionAction.TYPE.COMMIT);
 		}
 
 		setHaveActiveTransaction(true);
@@ -2986,13 +2981,15 @@ public class QueryEditorPart extends
 					// TODO : Should it need to use?
 					// Because it will commit automatically without running auto commit method
 					// when it has the auto commit mode
-					queryAction(QUERY_ACTION.COMMIT);
+					QueryConnectionAction.queryAction(connection,
+							QueryConnectionAction.TYPE.COMMIT);
 				}
 			} catch (final SQLException event) {
 				try {
 					// Keep it for safe rollback transactions
 					if (isAutocommit) {
-						queryAction(QUERY_ACTION.ROLLBACK);
+						QueryConnectionAction.queryAction(connection,
+								QueryConnectionAction.TYPE.ROLLBACK);
 					}
 				} catch (SQLException e1) {
 					LOGGER.error("", e1);
@@ -3016,72 +3013,10 @@ public class QueryEditorPart extends
 					logs.append(result.getQueryMsg());
 				}
 			} finally {
-				final String logsBak = logs.toString();
-				final String noSelectSqlBak = noSelectSql;
-				final int cntResultsBak = i;
-				final boolean hasModifyQueryBak = hasModifyQuery;
-				final boolean isIsolationHigherBak = isIsolationHigher;
-				final boolean resolvedTransactionBak = resolvedTransaction;
-				final TuneModeModel tuneModeModelBak = tuneModeModel;
-
-				RecentlyUsedSQLDetailPersistUtils.save(database);
-
-				Display.getDefault().syncExec(new Runnable() {
-					public void run() {
-						CTabFolder queryResultTabFolder = combinedQueryComposite.getQueryResultComp().getQueryResultTabFolder();
-						QueryResultComposite queryResultComposite = null;
-						if (multi) {
-							queryResultComposite = combinedQueryComposite.getQueryResultComp();
-						} else if (queryResultTabFolder != null
-								&& !queryResultTabFolder.isDisposed()) {
-							QueryUtil.freeQuery(pStmt, rs);
-							pStmt = null;
-							rs = null;
-
-							queryResultComposite = combinedQueryComposite.getQueryResultComp();
-							queryResultComposite.disposeAllResult();
-							if (cntResultsBak < 1 && logsBak.trim().length() <= 0) {
-								queryResultComposite.makeEmptyResult();
-							} else {
-								if (logsBak.trim().length() > 0) {
-									queryResultComposite.makeLogResult(noSelectSqlBak, logsBak);
-								}
-								for (int j = 0; j < curResult.size(); j++) {
-									queryResultComposite.makeSingleQueryResult((QueryExecuter) curResult.get(j));
-								}
-							}
-
-							if (!isAutocommit && resolvedTransactionBak) {
-								setHaveActiveTransaction(false);
-							} else if (hasModifyQueryBak || isIsolationHigherBak) {
-								setHaveActiveTransaction(true);
-							} else {
-								try {
-									if (connection.hasConnection()) {
-										queryAction(QUERY_ACTION.COMMIT);
-									}
-								} catch (SQLException event) {
-									LOGGER.error("", event);
-								}
-								setHaveActiveTransaction(false);
-							}
-							if (queryResultTabFolder.getItemCount() > 0) {
-								queryResultTabFolder.setSelection(queryResultTabFolder.getItemCount() - 1);
-							}
-
-							autoCommitItem.setEnabled(true);
-							queryPlanItem.setEnabled(true);
-							setPstmtParaItem.setEnabled(true);
-						}
-						if (runningCount.decrementAndGet() == 0) {
-							queryResultComposite.setCanDispose(true);
-							isRunning = false;
-						}
-						if (collectExecStats && tuneModeModelBak != null) {
-							displayTuneModeResult(tuneModeModelBak);
-						}
-					}
-				});
+				// showing record's result to the table viewer
+				queryEditorResult.showTableResult(logs.toString(), noSelectSql, i,
+						hasModifyQuery, isIsolationHigher, resolvedTransaction,
+						tuneModeModel, multi, curResult, isRunning, collectExecStats);
 			}
 		}
 	}
@@ -3098,21 +3033,6 @@ public class QueryEditorPart extends
 		}
 		String tcl = sql.toLowerCase();
 		return tcl.startsWith("commit") || tcl.startsWith("rollback");
-	}
-
-	public void displayTuneModeResult(final TuneModeModel tuneModeModel) {
-		if (tuneModeView == null || tuneModeView.isDisposed()) {
-			createTuneModeView();
-		}
-		tuneModeView.setParentEditorName(getPartName());
-		tuneModeView.showResult(tuneModeModel);
-	}
-
-	public void showTuneModeResult() {
-		tuneModeView.show();
-	}
-
-	public void hideTuneModeResult() {
 	}
 
 	/**
@@ -3185,11 +3105,10 @@ public class QueryEditorPart extends
 		setSelectText("");
 	}
 
-	/**
-	 * Get the run item on toolbar
-	 *
-	 * @return runItem
-	 */
+	public QueryEditorResult getQueryEditorResult() {
+		return queryEditorResult;
+	}
+
 	public ToolItem getRunItem() {
 		return runItem;
 	}
@@ -3214,14 +3133,45 @@ public class QueryEditorPart extends
 		return showResultItem;
 	}
 
-	//	/**
-	//	 * Set query connection
-	//	 *
-	//	 * @param queryConn Connection
-	//	 */
-	//	public void setQueryConn(Connection queryConn) {
-	//		this.queryConn = queryConn;
-	//	}
+	public ToolItem getRollbackItem() {
+		return rollbackItem;
+	}
+
+	public ToolItem getAutoCommitItem() {
+		return autoCommitItem;
+	}
+
+	public ToolItem getQueryPlanItem() {
+		return queryPlanItem;
+	}
+
+	public ToolItem getSetPstmtParaItem() {
+		return setPstmtParaItem;
+	}
+
+	public ToolItem getCommitItem() {
+		return commitItem;
+	}
+
+	public Composite getTopComposite() {
+		return topComposite;
+	}
+
+	public GridData getHiddenGridDataForNotice() {
+		return hiddenGridDataForNotice;
+	}
+
+	public GridData getShownGridDataForNotice() {
+		return shownGridDataForNotice;
+	}
+
+	public Label getNoticeMessageArea() {
+		return noticeMessageArea;
+	}
+
+	public AtomicInteger getRunningCount() {
+		return runningCount;
+	}
 
 	/**
 	 * When query options change or database and server refresh, refresh this
@@ -3337,8 +3287,8 @@ public class QueryEditorPart extends
 	 */
 	public void commit() {
 		try {
-			queryAction(QUERY_ACTION.COMMIT);
-
+			QueryConnectionAction.queryAction(connection,
+					QueryConnectionAction.TYPE.COMMIT);
 		} catch (SQLException ex) {
 			CommonUITool.openErrorBox(Messages.bind(
 					com.cubrid.common.ui.common.Messages.errCommonTip, ex.getErrorCode(),
@@ -3356,7 +3306,8 @@ public class QueryEditorPart extends
 	 */
 	public void rollback() {
 		try {
-			queryAction(QUERY_ACTION.ROLLBACK);
+			QueryConnectionAction.queryAction(connection,
+					QueryConnectionAction.TYPE.ROLLBACK);
 		} catch (SQLException ex) {
 			CommonUITool.openErrorBox(Messages.bind(
 					com.cubrid.common.ui.common.Messages.errCommonTip, ex.getErrorCode(),
@@ -3453,41 +3404,6 @@ public class QueryEditorPart extends
 
 	public void setIsRunning(boolean status) {
 		isRunning = status;
-	}
-
-	public enum QUERY_ACTION {
-		COMMIT, ROLLBACK, CLOSE, AUTOCOMMIT
-	}
-
-	public void queryAction(QUERY_ACTION action, Object... args) throws SQLException {
-		if (connection == null) {
-			return;
-		}
-		switch (action) {
-		case COMMIT:
-			if (!connection.isClosed()) {
-				connection.commit();
-			}
-			break;
-		case ROLLBACK:
-			if (!connection.isClosed()) {
-				connection.rollback();
-			}
-			break;
-		case CLOSE:
-			if (!connection.isClosed()) {
-				connection.close();
-			}
-			break;
-		case AUTOCOMMIT:
-			if (args == null || args.length == 0) {
-				return;
-			}
-			if (!connection.isClosed()) {
-				connection.setAutoCommit(Boolean.parseBoolean(args[0].toString()));
-			}
-			break;
-		}
 	}
 
 	public void setRunItemStatus(boolean b) {

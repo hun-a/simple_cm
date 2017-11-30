@@ -603,12 +603,17 @@ public class QueryExecuter implements IShowMoreOperator{ // FIXME very complicat
 	 */
 	private void fillTableItemData(CUBRIDResultSetProxy rs) throws SQLException {
 		cntRecord = 0;
-		int limit = recordLimit;
+		int limit = recordLimit;	// limit is unnecessary variable
 		while (rs.next()) {
 			cntRecord++;
 			//add item data to the end of list
 			addTableItemData(rs, -1);
 			resultSetDataCache.AddData(BuildCurrentRowData(rs));
+			
+			// 1. Show the result to the TableViewer just 100 records
+			
+			// 2. Save the records to the files when cntRecord grater or equal than recordLimit.
+			
 			if (recordLimit > 0 && cntRecord >= limit && multiQuerySql == null) {	// check this statement
 				final String msg = Messages.bind(Messages.tooManyRecord, limit);
 				showQueryTip(msg);

@@ -556,7 +556,7 @@ public class QueryPlanCompositeWithHistory extends Composite implements ISubTabS
 				QueryPlanComposite comp = getSelectedQueryPlanComposite();
 				StructQueryPlan sq = comp.getQueryPlan();
 				TuneModeModel tuneModeModel = new TuneModeModel(sq, null);
-				editor.displayTuneModeResult(tuneModeModel);
+				editor.getQueryEditorResult().displayTuneModeResult(tuneModeModel);
 			}
 		});
 

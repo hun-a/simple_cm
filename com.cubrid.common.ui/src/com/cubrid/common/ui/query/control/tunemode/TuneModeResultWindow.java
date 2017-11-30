@@ -43,7 +43,7 @@ public class TuneModeResultWindow {
 
 		shell.addShellListener(new ShellListener() {
 			public void shellIconified(ShellEvent e) {
-				editor.hideTuneModeResult();
+				editor.getQueryEditorResult().hideTuneModeResult();
 			}
 
 			public void shellDeiconified(ShellEvent e) {
