@@ -1,5 +1,6 @@
 package com.cubrid.common.ui.query.control;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,15 +9,21 @@ import java.io.ObjectOutputStream;
 
 import javax.swing.event.EventListenerList;
 
+import com.cubrid.common.ui.CommonUIPlugin;
 import com.cubrid.common.ui.query.control.event.RecordReaderEvent;
 import com.cubrid.common.ui.query.control.event.RecordReaderListener;
 import com.cubrid.common.ui.query.control.model.RecordInfo;
+import com.cubrid.common.ui.spi.persist.PersistUtils;
 
 public class RecordManager<T> {
 	private EventListenerList ListenerList;
-	
+	private String filePath;
+
 	public RecordManager() {
 		ListenerList = new EventListenerList();
+		filePath = PersistUtils.getGlobalPreference(
+				CommonUIPlugin.PLUGIN_ID).get("RECENT_WORKSPACES", null)
+				+ File.separator + "temp" + File.separator;
 	}
 
 	public void addRecordReaderListener(RecordReaderListener listener) {
@@ -77,7 +84,7 @@ public class RecordManager<T> {
 				ObjectOutputStream out = null;
 				
 				try {
-					String fileName = "temp/" + Long.toString(System.currentTimeMillis());
+					String fileName = filePath + Long.toString(System.currentTimeMillis());
 					out = new ObjectOutputStream(new FileOutputStream(fileName));
 					out.writeObject(t);
 					out.flush();
