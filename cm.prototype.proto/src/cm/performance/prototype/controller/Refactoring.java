@@ -65,15 +65,14 @@ public class Refactoring {
 			
 			@Override
 			public void readEvent(RecordReaderEvent event) {
-				int currentIndex = 0;
 				// print
-				List<Map<String, CellValue>> list = manager.readSpecificRecords(QUERY_EDITOR_ID, currentIndex);
+				List<Map<String, CellValue>> list = manager.readSpecificRecords(QUERY_EDITOR_ID, event.getCurrentPage());
 				columnPrint();
 				recordPrint(list);
 				
 				Timer.end();
 				Timer.printElapsedTime();
-				System.out.format("\ncurrentPage: %d\n", currentIndex);
+				System.out.format("\ncurrentPage: %d\n", event.getCurrentPage());
 				manager.removeRecordReaderListener(this);
 				
 				while (true) {
@@ -81,20 +80,20 @@ public class Refactoring {
 					String input = s.next();
 					
 					if (input.equals("<")) {
-						if (currentIndex > 0) {
+						if (event.getCurrentPage() > 0) {
 							recordPrint(manager.readSpecificRecords(
-									QUERY_EDITOR_ID, --currentIndex));
+									QUERY_EDITOR_ID, event.previous()));
 						}
 					} else if(input.equals(">")) {
-						if (currentIndex < manager.size(QUERY_EDITOR_ID)) {
+						if (event.getCurrentPage() < manager.size(QUERY_EDITOR_ID)) {
 							recordPrint(manager.readSpecificRecords(
-									QUERY_EDITOR_ID, ++currentIndex));
+									QUERY_EDITOR_ID, event.next()));
 						}
 					} else if(input.equals("q")) {
 						System.out.println("Good bye~");
 						break;
 					}
-					System.out.format("\ncurrentPage: %d\n", currentIndex);
+					System.out.format("\ncurrentPage: %d\n", event.getCurrentPage());
 				}
 				manager.remove(QUERY_EDITOR_ID);
 				System.exit(0);

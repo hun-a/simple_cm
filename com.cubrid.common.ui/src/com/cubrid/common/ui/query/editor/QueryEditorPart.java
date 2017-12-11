@@ -3014,9 +3014,9 @@ public class QueryEditorPart extends
 				}
 			} finally {
 				// showing record's result to the table viewer
-				queryEditorResult.showTableResult(logs.toString(), noSelectSql, i,
+				queryEditorResult.showTableResult(logs.toString(), noSelectSql,
 						hasModifyQuery, isIsolationHigher, resolvedTransaction,
-						tuneModeModel, multi, curResult, isRunning, collectExecStats);
+						tuneModeModel, curResult, collectExecStats);
 			}
 		}
 	}
@@ -3510,6 +3510,10 @@ public class QueryEditorPart extends
 
 	public void copyAllItems() {
 		result.copyAllItems();
+	}
+
+	public String getEditorTabName() {
+		return editorTabNameOriginal;
 	}
 
 	public static String makeSqlErrorOnResult(int index, String sql, Exception ee) {

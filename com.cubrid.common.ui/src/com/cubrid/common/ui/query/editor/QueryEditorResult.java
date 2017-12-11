@@ -34,30 +34,23 @@ public class QueryEditorResult {
 	}
 
 	public void showTableResult(final String logs, final String noSelectSql,
-			final int cntResults, final boolean hasModifyQuery,
-			final boolean isIsolationHigher, final boolean resolvedTransaction,
-			final TuneModeModel tuneModeModel, final boolean multi,
-			final Vector<QueryExecuter> curResult, final Boolean isRunning,
+			final boolean hasModifyQuery, final boolean isIsolationHigher, final boolean resolvedTransaction,
+			final TuneModeModel tuneModeModel, final Vector<QueryExecuter> curResult,
 			final boolean collectExecStats) {
 
 		RecentlyUsedSQLDetailPersistUtils.save(queryEditorPart.getDatabase());
 
 		Display.getDefault().syncExec(new Runnable() {
 			public void run() {
-				CTabFolder queryResultTabFolder = combinedQueryComposite.getQueryResultComp().getQueryResultTabFolder();
-				QueryResultComposite queryResultComposite = null;
-				if (multi) {
-					queryResultComposite = combinedQueryComposite.getQueryResultComp();
-				} else if (queryResultTabFolder != null
+				QueryResultComposite queryResultComposite = combinedQueryComposite.getQueryResultComp();
+				CTabFolder queryResultTabFolder = queryResultComposite.getQueryResultTabFolder();
+				if (queryResultTabFolder != null
 						&& !queryResultTabFolder.isDisposed()) {
-					queryResultComposite = combinedQueryComposite.getQueryResultComp();
 					queryResultComposite.disposeAllResult();
-					if (cntResults < 1 && logs.trim().length() <= 0) {
+					if (curResult.size() == 0) {
 						queryResultComposite.makeEmptyResult();
 					} else {
-						if (logs.trim().length() > 0) {
-							queryResultComposite.makeLogResult(noSelectSql, logs);
-						}
+						showLogResult(logs, noSelectSql);
 						for (int j = 0; j < curResult.size(); j++) {
 							queryResultComposite.makeSingleQueryResult((QueryExecuter) curResult.get(j));
 						}
@@ -95,6 +88,12 @@ public class QueryEditorResult {
 				}
 			}
 		});
+	}
+
+	private void showLogResult(String logs, String noSelectSql) {
+		if (logs.trim().length() > 0) {
+			combinedQueryComposite.getQueryResultComp().makeLogResult(noSelectSql, logs);
+		}
 	}
 
 	public void displayTuneModeResult(final TuneModeModel tuneModeModel) {

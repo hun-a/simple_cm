@@ -23,7 +23,8 @@ public class RecordManager<T> {
 		ListenerList.remove(RecordReaderListener.class, listener);
 	}
 
-	private void fireRecordReaderEvent(RecordReaderEvent event) {
+	private void fireRecordReaderEvent(RecordReaderEvent event, int page) {
+		event.setPageNumber(page);
 		Object[] listeners = ListenerList.getListenerList();
 		
 		for (int i = listeners.length - 2; i >= 0; i-=2) {
@@ -33,8 +34,8 @@ public class RecordManager<T> {
 		}
 	}
 
-	public void read() {
-		fireRecordReaderEvent(new RecordReaderEvent(this));
+	public void read(int page) {
+		fireRecordReaderEvent(new RecordReaderEvent(this), page);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -78,7 +79,7 @@ public class RecordManager<T> {
 					synchronized (this) {
 						setFileName(queryEditorId, index, fileName);
 						if (index == 0) {
-							read();
+							read(index);
 						}
 					}
 				} catch (IOException e) {
